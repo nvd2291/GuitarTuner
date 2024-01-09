@@ -4,9 +4,10 @@ to B8 as a python dictionary
 """
 
 notes = {
-    16.35: "C0",
-    17.32: "C#0/Db0",
-    18.35: "D0",
+    # These notes aren't actually audible so they're be excluded
+    # 16.35: "C0",
+    # 17.32: "C#0/Db0",
+    # 18.35: "D0",
     19.45: "D#0/Eb0",
     20.60: "E0",
     21.83: "F0",

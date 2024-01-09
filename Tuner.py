@@ -27,7 +27,7 @@ class Tuner:
     #notes dictionary where key = Frequency, value = Note
     __notes = notes
     __sampling_rates = (44100, 48000, 96000, 192000)
-    def __init__(self, sample_rate = 96000, chunk_size = 10240):
+    def __init__(self, sample_rate = 96000, chunk_size = 48000):
         if sample_rate not in self.__sampling_rates:
             self.fs = self.__sampling_rates[0]
         else:
@@ -65,7 +65,8 @@ class Tuner:
     def get_note(self):
         data = self.get_mic_data()
         if len(data) == 0:
-            return
+            print("Waiting for data")
+            return -1
         fft_bin_size = self.fs/len(data)
         fft_data = fft(data)/len(data)
         one_sided_sample_limit = len(data)//2
@@ -84,7 +85,9 @@ class Tuner:
         max_value_index = np.argmax(fft_mag)
 
         note = round(fft_bins[max_value_index],2)
-        print(f"Note Frequency is {note}")
+        print(f"Current Frequency is {note}")
+
+        return note
 
     def setup_audio_stream(self):
         self.stream = sd.InputStream(device = self.current_device["index"],
@@ -94,10 +97,34 @@ class Tuner:
                                      callback = self.audio_callback)
         self.stream.start()
     
+    def find_nearest_note(self, note_freq: float):
+
+        if note_freq is -1:
+            return 0 , 0
+        notes = list(self.__notes.keys())
+
+        left = 0
+        right = len(notes) - 1
+
+        while (left < right):
+
+            mid = (left + right) // 2
+            if notes[mid] == note_freq:
+                return (note_freq, note_freq)
+            
+            if note_freq < notes[mid]:
+                right = mid
+
+            else:
+                left = mid + 1
+
+        return (notes[right-1], notes[left])
 
     
 myTuner = Tuner()
 
 while True:
-    myTuner.get_note()
+    current_note = myTuner.get_note()
+    lower,upper = myTuner.find_nearest_note(current_note)
+    print(f"{lower}, {upper}")
     time.sleep(0.5)
